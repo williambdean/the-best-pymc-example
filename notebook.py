@@ -174,7 +174,11 @@ def _(mo):
 def _(mo):
     # UI for dataset and model selection
     dataset_selector = mo.ui.dropdown(
-        options={"Berry (1996)": "berry", "Broadie (2018)": "broadie"},
+        options={
+            "Berry (1996)": "berry",
+            "Broadie (2018)": "broadie",
+            "Combined": "combined",
+        },
         value="Berry (1996)",
         label="Select Dataset",
     )
@@ -194,9 +198,15 @@ def _(dataset_selector, mo):
 
 
 @app.cell
-def _(dataset_selector, golf_data, new_golf_data):
+def _(dataset_selector, golf_data, new_golf_data, pd):
     # Select data based on UI
-    data = golf_data if dataset_selector.value == "berry" else new_golf_data
+    data = {
+        "berry": golf_data,
+        "broadie": new_golf_data,
+        "combined": pd.concat(
+            [golf_data, new_golf_data], ignore_index=True
+        ).sort_values("distance"),
+    }[dataset_selector.value]
     return (data,)
 
 
