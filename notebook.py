@@ -12,6 +12,7 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -61,6 +62,7 @@ def _():
     # Utility for standard normal CDF
     def phi(x):
         return 0.5 + 0.5 * pt.erf(x / pt.sqrt(2.0))
+
     return (
         Axes,
         BALL_RADIUS,
@@ -331,6 +333,7 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, pd, phi, pm, pt):
                 dims="dist",
             )
         return model
+
     return (
         define_angle_model,
         define_disp_distance_angle_model,
@@ -432,6 +435,7 @@ def _(Function, function, pm, pytensor):
     def compile_p_make_function(model: pm.Model) -> Function:
         inputs = free_RVs_into_p_make(model)
         return function(inputs, model["p_make"], mode="FAST_COMPILE")
+
     return compile_p_make_function, free_RVs_into_p_make
 
 
@@ -453,6 +457,7 @@ def _(TensorVariable, free_RVs_into_p_make, mo, pm):
         names = [get_distribution_name(var) for var in inputs]
 
         return {var.name: get_parameter_ui(name) for var, name in zip(inputs, names)}
+
     return (create_marimo_model_inputs,)
 
 
@@ -535,7 +540,6 @@ def _(
 
     has_cached_idata = (dataset_selector.value, model_selector.value) in idatas
 
-
     callout = None
     if has_cached_idata:
         idata = idatas[(dataset_selector.value, model_selector.value)]
@@ -545,8 +549,10 @@ def _(
             nuts_sampler="nutpie",
         )
         idatas[(dataset_selector.value, model_selector.value)] = idata
-    else: 
-        callout = mo.callout(f"The {model_selector.selected_key} has not been sampled yet on {dataset_selector.selected_key} dataset. Click the button above to sample.")
+    else:
+        callout = mo.callout(
+            f"The {model_selector.selected_key} has not been sampled yet on {dataset_selector.selected_key} dataset. Click the button above to sample."
+        )
 
     callout
     return (idata,)
@@ -628,6 +634,7 @@ def _(Axes, az, np, plt, st):
         plot_hdi(predictions, ax=ax, hdi_prob=0.94)
         plot_hdi(predictions, ax=ax, hdi_prob=0.68)
         return ax
+
     return format_percentage, plot_golf_data, plot_predictions
 
 
@@ -929,6 +936,7 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, az, np):
             variance_of_distance = variance_of_distance[~made_it]
             n_shots.append(made_it.sum())
         return np.array(n_shots) / trials
+
     return (expected_num_putts,)
 
 
