@@ -507,7 +507,7 @@ def _(mo):
         idata = pm.sample(nuts_sampler="nutpie")
     ```
 
-    Though it can be quite, using a `mo.ui.run_button` can be helpful to trigger execution.
+    Though it can be quite quick, using a `mo.ui.run_button` can be helpful to trigger execution.
     """)
     return
 
