@@ -35,6 +35,7 @@ def _(mo):
 
 @app.cell
 def _():
+    from dataclasses import dataclass
     import pandas as pd
     import numpy as np
     from matplotlib.axes import Axes
@@ -72,6 +73,7 @@ def _():
         TensorVariable,
         az,
         clone_model,
+        dataclass,
         io,
         np,
         pd,
@@ -816,7 +818,7 @@ def _(
         sim_distance_slider.value,
         trials=5000,
     )
-    return sim_made, sim_x, sim_y
+    return sim_made, sim_x, sim_y, simulate_from_distance
 
 
 @app.cell
@@ -954,7 +956,138 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, az, np):
 
 
 @app.cell
-def _():
+def _(mo, model_selector):
+    mo.md(f"""
+    ### Driving Range
+
+    Simulate playing the driving using the {model_selector.selected_key} model
+    """)
+    return
+
+
+@app.cell
+def _(idata, simulate_from_distance, starting_distance):
+    strokes = []
+    simulate_from_distance(idata, starting_distance.value, trials=1)
+    return
+
+
+@app.cell
+def _(mo):
+    starting_distance = mo.ui.slider(
+        start=1,
+        stop=400,
+        value=50,
+        step=1,
+        show_value=True,
+        label="Length of putt (ft)",
+    )
+    hit_button = mo.ui.run_button(label="Hit")
+    return hit_button, starting_distance
+
+
+@app.cell
+def _(hit_button, mo, starting_distance):
+    mo.vstack([starting_distance, hit_button])
+    return
+
+
+@app.cell
+def _(dataclass, np, simulate_from_distance):
+    @dataclass
+    class Putt:
+        x: float
+        y: float
+        made_it: bool
+
+        @classmethod
+        def simulate(cls, idata, distance_to_hole):
+            x, y, made_it = simulate_from_distance(idata, distance_to_hole, trials=1)
+            return cls(x=float(x[0]), y=float(y[0]), made_it=bool(made_it[0]))
+
+        def distance_to_hole(self, hole_x: float) -> float:
+            return np.sqrt((self.x - hole_x) ** 2 + (self.y - 0) ** 2)
+
+    return (Putt,)
+
+
+@app.cell
+def _(Putt, get_remaining_distance, hit_button, idata, set_putts):
+    if hit_button.value:
+        putt = Putt.simulate(idata, get_remaining_distance())
+        set_putts(lambda v: v + [putt])
+    return
+
+
+@app.cell
+def _(mo, starting_distance):
+    get_putts, set_putts = mo.state([])
+    get_remaining_distance, set_remaining_distance = mo.state(starting_distance.value)
+    return get_putts, get_remaining_distance, set_putts
+
+
+@app.cell
+def _(get_putts, pd):
+    putts_frame = pd.DataFrame(get_putts())
+    return (putts_frame,)
+
+
+@app.cell
+def _(mo, putts_frame, starting_distance):
+    success_md = None
+    if not putts_frame.empty:
+        success_md = mo.md(
+            f"""Stats from {starting_distance.value} ft:
+
+            | Tries | Successes | 
+            | --- | --- | 
+            | {len(putts_frame)} | {putts_frame["made_it"].sum()} | 
+        
+        """
+        )
+
+    success_md
+    return
+
+
+@app.cell
+def _(Axes, plt, putts_frame, starting_distance):
+    def setup_starting_position(ax: Axes, distance_to_hole) -> Axes:
+        ax.set_facecolor("#e6ffdb")
+        ax.set_xlabel("x (ft)")
+        ax.set_ylabel("y (ft)")
+        ax.plot(0, 0, "k.", lw=1, mfc="black", ms=250 / distance_to_hole)
+
+    def setup_hole_position(ax: Axes, distance_to_hole) -> Axes:
+        ax.plot(
+            distance_to_hole,
+            0,
+            "ko",
+            lw=1,
+            mfc="black",
+            ms=350 / distance_to_hole,
+        )
+
+    _ax = plt.gca()
+    setup_starting_position(_ax, starting_distance.value)
+    if (~putts_frame["made_it"]).sum():
+        putts_frame.loc[~putts_frame["made_it"]].plot.scatter(
+            x="x",
+            y="y",
+            ax=_ax,
+            color="red",
+        )
+
+    if putts_frame["made_it"].sum():
+        putts_frame.loc[putts_frame["made_it"]].plot.scatter(
+            x="x",
+            y="y",
+            ax=_ax,
+            color="green",
+        )
+    setup_hole_position(_ax, starting_distance.value)
+
+    _ax
     return
 
 
