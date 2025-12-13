@@ -43,7 +43,6 @@ def _():
     import pymc as pm
     import pytensor.tensor as pt
     import pytensor
-    from pytensor import function
     from pytensor.compile import Function
     from pytensor.tensor.variable import TensorVariable
     import scipy.stats as st
@@ -73,7 +72,6 @@ def _():
         TensorVariable,
         az,
         clone_model,
-        function,
         io,
         np,
         pd,
@@ -234,7 +232,6 @@ def _(data, plot_golf_data):
 
 @app.cell
 def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, pd, phi, pm, pt):
-    # Model definitions
     def initialize_model(golf_data: pd.DataFrame) -> pm.Model:
         coords = {"dist": golf_data["distance"].values}
         with pm.Model(coords=coords) as model:
@@ -425,7 +422,7 @@ def _(mo, parameter_ui):
     import pytensor
 
     inputs = [v for v in pytensor.graph.ancestors([model["p_make"]])  if v in model.free_RVs]
-    fn = pytensor.function([inputs], model["p_make"])
+    fn = model.compile_fn(model["p_make"], inputs=inputs, point_fn=False)
 
     fn({fn_inputs})
     ```
@@ -434,7 +431,7 @@ def _(mo, parameter_ui):
 
 
 @app.cell
-def _(Function, function, pm, pytensor):
+def _(Function, pm, pytensor):
     def free_RVs_into_p_make(model: pm.Model):
         return [
             v
@@ -444,7 +441,12 @@ def _(Function, function, pm, pytensor):
 
     def compile_p_make_function(model: pm.Model) -> Function:
         inputs = free_RVs_into_p_make(model)
-        return function(inputs, model["p_make"], mode="FAST_COMPILE")
+        return model.compile_fn(
+            model["p_make"],
+            inputs=inputs,
+            mode="FAST_COMPILE",
+            point_fn=False,
+        )
 
     return compile_p_make_function, free_RVs_into_p_make
 
