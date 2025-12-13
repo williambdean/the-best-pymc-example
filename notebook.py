@@ -232,6 +232,7 @@ def _(data, plot_golf_data):
 
 @app.cell
 def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, pd, phi, pm, pt):
+    # Model definitions
     def initialize_model(golf_data: pd.DataFrame) -> pm.Model:
         coords = {"dist": golf_data["distance"].values}
         with pm.Model(coords=coords) as model:
@@ -896,10 +897,10 @@ def _(first_stroke, follow_through, mo):
 
 @app.cell
 def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, az, np):
-    def expected_num_putts(trace, distance_to_hole, trials=100_000):
+    def expected_num_putts(idata, distance_to_hole, trials=100_000):
         distance_to_hole = distance_to_hole * np.ones(trials)
 
-        combined_trace = az.extract(trace)
+        combined_trace = az.extract(idata)
 
         n_samples = combined_trace.sizes["sample"]
 
@@ -953,6 +954,11 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, az, np):
 
 
 @app.cell
+def _():
+    return
+
+
+@app.cell
 def _(mo):
     mo.md("""
     <br>
@@ -962,9 +968,9 @@ def _(mo):
     ---
     ## Resources
 
-    This was adapted from one of the many PyMC-examples. Find the original notebook [here](https://www.pymc.io/projects/examples/en/latest/case_studies/putting_workflow.html).
+    This was adapted from one of the many PyMC-examples. Find this notebook [here](https://www.pymc.io/projects/examples/en/latest/case_studies/putting_workflow.html).
 
-    Read the blog post by Andrew Gelman [here](https://mc-stan.org/learn-stan/case-studies/golf.html).
+    Read the original blog post by Andrew Gelman [here](https://mc-stan.org/learn-stan/case-studies/golf.html).
 
     Find the source code for this notebook on [GitHub (`williambdean/the-best-pymc-example`)](https://github.com/williambdean/the-best-pymc-example).
     """)
