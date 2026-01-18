@@ -5,6 +5,8 @@
 
 import marimo
 
+import arviz as az
+
 __generated_with = "0.19.4"
 app = marimo.App(width="medium")
 
@@ -12,6 +14,7 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -61,6 +64,7 @@ def _():
     # Utility for standard normal CDF
     def phi(x):
         return 0.5 + 0.5 * pt.erf(x / pt.sqrt(2.0))
+
     return (
         Axes,
         BALL_RADIUS,
@@ -341,6 +345,7 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, pd, phi, pm, pt):
                 dims="dist",
             )
         return model
+
     return (
         define_angle_model,
         define_disp_distance_angle_model,
@@ -447,6 +452,7 @@ def _(Function, pm, pytensor):
             mode="FAST_COMPILE",
             point_fn=False,
         )
+
     return compile_p_make_function, free_RVs_into_p_make
 
 
@@ -468,6 +474,7 @@ def _(TensorVariable, free_RVs_into_p_make, mo, pm):
         names = [get_distribution_name(var) for var in inputs]
 
         return {var.name: get_parameter_ui(name) for var, name in zip(inputs, names)}
+
     return (create_marimo_model_inputs,)
 
 
@@ -644,6 +651,7 @@ def _(Axes, az, np, plt, st):
         plot_hdi(predictions, ax=ax, hdi_prob=0.94)
         plot_hdi(predictions, ax=ax, hdi_prob=0.68)
         return ax
+
     return format_percentage, plot_golf_data, plot_predictions
 
 
@@ -731,7 +739,7 @@ def _(model_selector):
 @app.cell
 def _(mo, sim_distance_slider):
     mo.md(f"""
-    Because we assumed a generative model for the putting process, we can simulate putts from any distance using the inferred parameters. 
+    Because we assumed a generative model for the putting process, we can simulate putts from any distance using the inferred parameters.
 
     For example: **Putting from {sim_distance_slider.value} ft.**
     """)
@@ -740,7 +748,7 @@ def _(mo, sim_distance_slider):
 
 @app.cell
 def _(data, mo, model_selector):
-    reference_line = mo.ui.checkbox(label="Show reference line above")
+    # reference_line = mo.ui.checkbox(label="Show reference line above")
 
     # UI for simulation distance
     if model_selector.value in [
@@ -867,10 +875,10 @@ def _(
     plt,
     sim_distance_slider,
 ):
-    _fig, _ax = plt.subplots(figsize=(6, 6))
+    _, _ax = plt.subplots(figsize=(6, 6))
 
     made = expected_num_putts(idata, sim_distance_slider.value)
-    x = np.arange(1, 1 + len(made), dtype=int)
+    _ = np.arange(1, 1 + len(made), dtype=int)
     _ax.vlines(np.arange(1, 1 + len(made)), 0, made, linewidths=50)
     _ax.set_title(f"{sim_distance_slider.value} feet")
     _ax.set_ylabel("Percent of attempts")
@@ -945,6 +953,7 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, az, np):
             variance_of_distance = variance_of_distance[~made_it]
             n_shots.append(made_it.sum())
         return np.array(n_shots) / trials
+
     return (expected_num_putts,)
 
 
@@ -993,6 +1002,7 @@ def _(dataclass, np, simulate_from_distance):
 
         def distance_to_hole(self, hole_x: float) -> float:
             return np.sqrt((self.x - hole_x) ** 2 + (self.y - 0) ** 2)
+
     return (Putt,)
 
 
@@ -1026,7 +1036,7 @@ def _(mo, putts_frame, starting_distance):
         success_md = mo.md(
             f"""Stats from {starting_distance.value} ft:
 
-            | Tries | Successes | Success Rate | 
+            | Tries | Successes | Success Rate |
             | --- | --- | --- |
             | {_total} | {_success} | {_success / _total:.2f}
 
