@@ -5,14 +5,13 @@
 
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.19.4"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
-
     return (mo,)
 
 
@@ -62,7 +61,6 @@ def _():
     # Utility for standard normal CDF
     def phi(x):
         return 0.5 + 0.5 * pt.erf(x / pt.sqrt(2.0))
-
     return (
         Axes,
         BALL_RADIUS,
@@ -343,7 +341,6 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, pd, phi, pm, pt):
                 dims="dist",
             )
         return model
-
     return (
         define_angle_model,
         define_disp_distance_angle_model,
@@ -450,7 +447,6 @@ def _(Function, pm, pytensor):
             mode="FAST_COMPILE",
             point_fn=False,
         )
-
     return compile_p_make_function, free_RVs_into_p_make
 
 
@@ -472,7 +468,6 @@ def _(TensorVariable, free_RVs_into_p_make, mo, pm):
         names = [get_distribution_name(var) for var in inputs]
 
         return {var.name: get_parameter_ui(name) for var, name in zip(inputs, names)}
-
     return (create_marimo_model_inputs,)
 
 
@@ -649,7 +644,6 @@ def _(Axes, az, np, plt, st):
         plot_hdi(predictions, ax=ax, hdi_prob=0.94)
         plot_hdi(predictions, ax=ax, hdi_prob=0.68)
         return ax
-
     return format_percentage, plot_golf_data, plot_predictions
 
 
@@ -951,7 +945,6 @@ def _(BALL_RADIUS, CUP_RADIUS, DISTANCE_TOLERANCE, OVERSHOT, az, np):
             variance_of_distance = variance_of_distance[~made_it]
             n_shots.append(made_it.sum())
         return np.array(n_shots) / trials
-
     return (expected_num_putts,)
 
 
@@ -962,13 +955,6 @@ def _(mo, model_selector):
 
     Simulate playing the driving using the {model_selector.selected_key} model
     """)
-    return
-
-
-@app.cell
-def _(idata, simulate_from_distance, starting_distance):
-    strokes = []
-    simulate_from_distance(idata, starting_distance.value, trials=1)
     return
 
 
@@ -1007,7 +993,6 @@ def _(dataclass, np, simulate_from_distance):
 
         def distance_to_hole(self, hole_x: float) -> float:
             return np.sqrt((self.x - hole_x) ** 2 + (self.y - 0) ** 2)
-
     return (Putt,)
 
 
@@ -1036,13 +1021,15 @@ def _(get_putts, pd):
 def _(mo, putts_frame, starting_distance):
     success_md = None
     if not putts_frame.empty:
+        _total = len(putts_frame)
+        _success = putts_frame["made_it"].sum()
         success_md = mo.md(
             f"""Stats from {starting_distance.value} ft:
 
-            | Tries | Successes | 
-            | --- | --- | 
-            | {len(putts_frame)} | {putts_frame["made_it"].sum()} | 
-        
+            | Tries | Successes | Success Rate | 
+            | --- | --- | --- |
+            | {_total} | {_success} | {_success / _total:.2f}
+
         """
         )
 
